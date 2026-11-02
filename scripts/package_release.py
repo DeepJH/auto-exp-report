@@ -15,7 +15,7 @@ import sys
 import zipfile
 from pathlib import Path
 
-from auto_exp.config import load_config
+from auto_exp.config import load_config, get_workspace_root
 from auto_exp.assembler import get_expected_final_filename
 
 
@@ -48,12 +48,13 @@ def package_clean_release(course_slug: str, exp_id: int | str, repo_root: Path |
     if repo_root is None:
         repo_root = Path.cwd()
 
+    cfg = load_config(repo_root)
+    workspace_root = get_workspace_root(cfg, repo_root)
+
     exp_id_str = str(exp_id)
-    exp_dir = repo_root / course_slug / "exps" / exp_id_str
+    exp_dir = workspace_root / course_slug / "exps" / exp_id_str
     if not exp_dir.is_dir():
         raise FileNotFoundError(f"实验目录不存在: {exp_dir}")
-
-    cfg = load_config(repo_root)
     student = cfg.get("student", {})
     course_meta = cfg.get("courses", {}).get(course_slug, {})
     course_name = course_meta.get("name", course_slug)

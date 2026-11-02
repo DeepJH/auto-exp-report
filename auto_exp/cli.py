@@ -14,14 +14,16 @@ import sys
 from pathlib import Path
 
 from auto_exp.assembler import prepare_assembly_handshake, verify_assembly_completion
-from auto_exp.config import load_config
+from auto_exp.config import load_config, get_workspace_root
 from auto_exp.humanizer import humanize_report
 from auto_exp.phase1 import run_phase1
 from auto_exp.releaser import execute_release
 
 
 def get_exp_state(course_slug: str, exp_id: int | str, repo_root: Path) -> dict | None:
-    state_file = repo_root / course_slug / "exps" / str(exp_id) / "workflow_state.json"
+    cfg = load_config(repo_root)
+    workspace_root = get_workspace_root(cfg, repo_root)
+    state_file = workspace_root / course_slug / "exps" / str(exp_id) / "workflow_state.json"
     if state_file.is_file():
         try:
             with open(state_file, "r", encoding="utf-8") as f:
@@ -44,7 +46,9 @@ def cmd_run(course_slug: str, exp_id: int | str, repo_root: Path | None = None) 
         run_phase1(course_slug, exp_id, repo_root)
 
         # 紧跟独立 Humanizer 润色并重新断言
-        exp_dir = repo_root / course_slug / "exps" / str(exp_id)
+        cfg = load_config(repo_root)
+        workspace_root = get_workspace_root(cfg, repo_root)
+        exp_dir = workspace_root / course_slug / "exps" / str(exp_id)
         raw_md = exp_dir / "report.raw.md"
         report_md = exp_dir / "report.md"
         report_docx = exp_dir / "report.docx"

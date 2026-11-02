@@ -12,7 +12,7 @@ import sys
 import time
 from pathlib import Path
 
-from auto_exp.config import load_config
+from auto_exp.config import load_config, get_workspace_root
 from scripts.assert_docx_tables import assert_docx_tables
 from scripts.inspect_template import inspect_template
 
@@ -21,8 +21,11 @@ def run_phase1(course_slug: str, exp_id: int | str, repo_root: Path | None = Non
     if repo_root is None:
         repo_root = Path.cwd()
 
+    cfg = load_config(repo_root)
+    workspace_root = get_workspace_root(cfg, repo_root)
+
     exp_id_str = str(exp_id)
-    course_dir = repo_root / course_slug
+    course_dir = workspace_root / course_slug
     resource_dir = course_dir / "resource"
     exp_dir = course_dir / "exps" / exp_id_str
 
@@ -30,7 +33,6 @@ def run_phase1(course_slug: str, exp_id: int | str, repo_root: Path | None = Non
         raise FileNotFoundError(f"未找到课程资源目录: {resource_dir}")
 
     exp_dir.mkdir(parents=True, exist_ok=True)
-    cfg = load_config(repo_root)
     student = cfg.get("student", {})
     course_meta = cfg.get("courses", {}).get(course_slug, {})
     course_name = course_meta.get("name", course_slug)

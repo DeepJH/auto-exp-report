@@ -39,3 +39,14 @@ def load_config(repo_root: Path | None = None) -> dict:
                 continue
 
     return {"student": DEFAULT_STUDENT, "courses": {}}
+
+
+def get_workspace_root(cfg: dict, default_root: Path | None = None) -> Path:
+    """根据配置解析实验工作区的根目录，支持相对路径与绝对路径"""
+    if default_root is None:
+        default_root = Path.cwd()
+    ws = cfg.get("workspace_dir", ".")
+    p = Path(ws)
+    if p.is_absolute():
+        return p
+    return (default_root / p).resolve()

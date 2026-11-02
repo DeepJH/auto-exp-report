@@ -6,7 +6,7 @@ Phase 2: 报告组装员 (Assembler)
 
 import json
 from pathlib import Path
-from auto_exp.config import load_config
+from auto_exp.config import load_config, get_workspace_root
 from scripts.validate_final_report import validate_final_report
 
 
@@ -20,8 +20,11 @@ def prepare_assembly_handshake(course_slug: str, exp_id: int | str, repo_root: P
     if repo_root is None:
         repo_root = Path.cwd()
 
+    cfg = load_config(repo_root)
+    workspace_root = get_workspace_root(cfg, repo_root)
+
     exp_id_str = str(exp_id)
-    exp_dir = repo_root / course_slug / "exps" / exp_id_str
+    exp_dir = workspace_root / course_slug / "exps" / exp_id_str
     state_file = exp_dir / "workflow_state.json"
 
     if not state_file.is_file():
@@ -29,8 +32,6 @@ def prepare_assembly_handshake(course_slug: str, exp_id: int | str, repo_root: P
 
     with open(state_file, "r", encoding="utf-8") as f:
         state = json.load(f)
-
-    cfg = load_config(repo_root)
     student = cfg.get("student", {})
     course_meta = cfg.get("courses", {}).get(course_slug, {})
     course_name = course_meta.get("name", course_slug)
@@ -93,8 +94,11 @@ def verify_assembly_completion(course_slug: str, exp_id: int | str, repo_root: P
     if repo_root is None:
         repo_root = Path.cwd()
 
+    cfg = load_config(repo_root)
+    workspace_root = get_workspace_root(cfg, repo_root)
+
     exp_id_str = str(exp_id)
-    exp_dir = repo_root / course_slug / "exps" / exp_id_str
+    exp_dir = workspace_root / course_slug / "exps" / exp_id_str
     state_file = exp_dir / "workflow_state.json"
 
     if not state_file.is_file():
@@ -103,7 +107,6 @@ def verify_assembly_completion(course_slug: str, exp_id: int | str, repo_root: P
     with open(state_file, "r", encoding="utf-8") as f:
         state = json.load(f)
 
-    cfg = load_config(repo_root)
     student = cfg.get("student", {})
     expected_final_name = get_expected_final_filename(student, exp_id_str)
     final_path = exp_dir / expected_final_name
