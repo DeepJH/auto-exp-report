@@ -15,9 +15,13 @@ case "$OS_NAME" in
     ;;
 esac
 
-# 2. 定位项目根目录
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+# 2. 定位项目根目录 (兼容软链接与直接调用)
+if git rev-parse --show-toplevel &>/dev/null; then
+  REPO_ROOT="$(git rev-parse --show-toplevel)"
+else
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+fi
 cd "${REPO_ROOT}"
 
 echo "=========================================================="

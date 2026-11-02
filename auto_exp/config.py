@@ -42,10 +42,12 @@ def load_config(repo_root: Path | None = None) -> dict:
 
 
 def get_workspace_root(cfg: dict, default_root: Path | None = None) -> Path:
-    """根据配置解析实验工作区的根目录，支持相对路径与绝对路径"""
+    """根据配置解析实验工作区的根目录，支持相对路径与绝对路径。
+    若配置未指定，且当前根目录下存在 workspace/ 则默认使用 workspace/，否则使用当前根目录。"""
     if default_root is None:
         default_root = Path.cwd()
-    ws = cfg.get("workspace_dir", ".")
+    default_ws = "workspace" if (default_root / "workspace").is_dir() else "."
+    ws = cfg.get("workspace_dir", default_ws)
     p = Path(ws)
     if p.is_absolute():
         return p

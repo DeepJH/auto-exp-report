@@ -1,7 +1,15 @@
 # auto-exp-report
 
+<p align="center">
+  <a href="https://github.com/DeepJH/auto-exp-report"><img src="https://img.shields.io/badge/GitHub-DeepJH%2Fauto--exp--report-181717?logo=github" alt="GitHub Repo"></a>
+  <a href="https://github.com/DeepJH/auto-exp-report/releases"><img src="https://img.shields.io/github/v/release/DeepJH/auto-exp-report?color=orange&label=Release" alt="Latest Release"></a>
+  <a href="https://github.com/DeepJH/auto-exp-report/issues"><img src="https://img.shields.io/github/issues/DeepJH/auto-exp-report?color=green" alt="Issues"></a>
+  <a href="https://github.com/DeepJH/auto-exp-report/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
+</p>
+
 > 🎓 **高校工科与计算机实验报告多 Agent 自动化工程流水线**  
-> 依托 Google Antigravity (`agy`) 原生子代理编排，严格遵循三阶段隔离门禁、模板大纲驱动、去 AI 学术腔调与公网假数据物理隔离。
+> 依托 Google Antigravity (`agy`) 原生子代理编排，严格遵循三阶段隔离门禁、模板大纲驱动、去 AI 学术腔调与公网假数据物理隔离。  
+> 🔗 **官方开源地址**：[https://github.com/DeepJH/auto-exp-report](https://github.com/DeepJH/auto-exp-report)
 
 ---
 
@@ -41,49 +49,48 @@
 
 ## 📂 Report Workspace 在哪里？怎么定义的？
 
-### 1. 物理位置与目录拓扑
-整个系统的报告工作区（Exp Context）采用**高度模块化、镜像对称**的文件系统布局。每个实验都拥有完全隔离的独立子空间：
+### 1. 默认内置工作区 (`workspace/`)
+仓库默认内置了 `workspace/` 目录作为开箱即用的实验工作区，目录布局完全隔离：
 
 ```text
 auto-exp-report/
-├── .agents/skills/auto-exp/SKILL.md         # Antigravity Skill 技能定义
-├── auto_exp/                               # 核心调度器与 Agent 模块
-├── scripts/                                # 确定性辅助工具 (环境、表格断言、打包、隐私)
+├── setup.sh                                # 【根目录快捷入口】一键环境配置软链接
 ├── config.example.yaml                     # 公开示范配置（仅包含假数据）
 ├── config.local.yaml                       # [本地私有] 个人真实配置（已加入 .gitignore）
 │
-└── <course_slug>/                          # 课程分类目录（如 cryptography / embedded-system-security）
-    ├── resource/                           # 【只读真理源 (SSoT)】
-    │   ├── 《XXX》实验指导书.pdf/.docx       # 官方实验指导书
-    │   └── （XXX）学号-姓名-实验X报告模板.docx # 官方 Word 报告模板
-    │
-    └── exps/<exp_id>/                      # 【⭐ Report Workspace / Exp Context】
-        ├── guide.md                        # [Phase 1] 解构生成的单一真理源
-        ├── （课程）学号-姓名-实验N报告.docx  # [Phase 1] 待填官方模板备份
-        ├── src/                            # [Phase 1] 核心代码与行级 I/O 测试用例
-        │   ├── <module>.py
-        │   ├── <module>_input.txt
-        │   └── <module>_expected.txt
-        ├── measurements.json               # [Phase 1] 真实纳秒级测量性能数据
-        ├── report.raw.md                   # [Phase 1] 镜像大纲的草拟报告 (截图留空)
-        ├── report.md                       # [Phase 1] 经 Humanizer 润色后的 Markdown
-        ├── report.docx                     # [Phase 1 终点] 通过表格 AST 断言的 Word 初稿
-        ├── assembly_manifest.json          # [Phase 2] 组装员给出的操作清单契约
-        ├── <学号><姓名>实验<N>报告.docx      # [Phase 2 产物] 用户填入实操截图合成的终稿
-        └── release/                        # [Phase 3 交付产物]
-            ├── <学号><姓名>实验<N>.zip     # 纯净源码 + 终稿一体压缩包 (0 pycache)
-            ├── <学号><姓名>实验<N>报告.docx  # 独立终稿报告备份
-            └── notes.md                    # 包含置顶中文改名提示的 Release 说明
+└── workspace/                              # 【⭐ 默认内置实验工作区】
+    └── <course_slug>/                      # 课程分类目录（如 cryptography / embedded-system-security）
+        ├── resource/                       # 【只读真理源 (SSoT)】
+        │   ├── 《XXX》实验指导书.pdf/.docx   # 官方实验指导书
+        │   └── （XXX）学号-姓名-实验X报告模板.docx # 官方 Word 报告模板
+        │
+        └── exps/<exp_id>/                  # 【各实验独立上下文 Exp Context】
+            ├── guide.md                    # [Phase 1] 解构生成的单一真理源
+            ├── （课程）学号-姓名-实验N报告.docx # [Phase 1] 待填官方模板备份
+            ├── src/                        # [Phase 1] 核心代码与行级 I/O 测试用例
+            │   ├── <module>.py
+            │   ├── <module>_input.txt
+            │   └── <module>_expected.txt
+            ├── measurements.json           # [Phase 1] 真实纳秒级测量性能数据
+            ├── report.raw.md               # [Phase 1] 镜像大纲的草拟报告 (截图留空)
+            ├── report.md                   # [Phase 1] 经 Humanizer 润色后的 Markdown
+            ├── report.docx                 # [Phase 1 终点] 通过表格 AST 断言的 Word 初稿
+            ├── assembly_manifest.json      # [Phase 2] 组装员给出的操作清单契约
+            ├── <学号><姓名>实验<N>报告.docx  # [Phase 2 产物] 用户填入实操截图合成的终稿
+            └── release/                    # [Phase 3 交付产物]
+                ├── <学号><姓名>实验<N>.zip # 纯净源码 + 终稿一体压缩包 (0 pycache)
+                ├── <学号><姓名>实验<N>报告.docx # 独立终稿报告备份
+                └── notes.md                # 包含置顶中文改名提示的 Release 说明
 ```
 
-### 2. 怎么定义的？（灵活配置）
-工作区根目录默认位于当前项目根目录（`Path.cwd()`）。如果您希望将生成引擎与个人报告仓库物理分离，只需在 `config.local.yaml` 中配置 `workspace_dir`：
-
-```yaml
-# 实验工作区根路径（可配置为绝对路径或相对路径，默认为 "."）
-workspace_dir: "/home/deepjh/workspace/my-lab-reports"
-```
-系统调度器会自动解析：`workspace_root / <course_slug> / exps / <exp_id>` 作为该实验的唯一工作区。
+### 2. 怎么定义的？（灵活解耦配置）
+在 [auto_exp/config.py](file:///home/deepjh/workspace/auto-exp-report/auto_exp/config.py) 中通过 `get_workspace_root()` 动态解析：
+- **内置模式**：默认 `workspace_dir: "workspace"`，所有课程材料集中存放于仓库内 `workspace/` 目录下；
+- **解耦模式**：若希望将生成工具与个人私有报告仓库彻底分开，只需在 `config.local.yaml` 中将 `workspace_dir` 指向外部目录：
+  ```yaml
+  workspace_dir: "/home/deepjh/workspace/my-lab-reports"
+  ```
+  流水线会自动将各门课的 `resource/` 与 `exps/` 挂载到该外部路径。
 
 ---
 
@@ -93,14 +100,15 @@ workspace_dir: "/home/deepjh/workspace/my-lab-reports"
 > Linux 的 Shell 统一简洁好用，而 PowerShell 带有历史包袱，语法相对诡异冗杂。用 PowerShell 只会害了你 [doge]，**强烈推荐在 Linux 原生环境或 Windows WSL2 (Ubuntu) 下运行**！
 
 ### 1. 运行一键配置脚本
-本项目严格遵循 Python **PEP 668** 规范，自动创建独立的 `.venv/` 虚拟环境，绝不污染系统全局 Python：
+本项目严格遵循 Python **PEP 668** 规范，自动创建独立的 `.venv/` 虚拟环境，绝不污染系统全局 Python。可在根目录直接运行：
 
 ```bash
-# 克隆仓库后进入目录
+# 1. 克隆代码仓库
+git clone https://github.com/DeepJH/auto-exp-report.git
 cd auto-exp-report
 
-# 执行一键配置（自动安装系统工具依赖与 Python 虚拟环境）
-bash scripts/setup.sh
+# 2. 根目录直接执行一键配置
+./setup.sh
 ```
 
 ### 2. 激活虚拟环境
@@ -115,6 +123,8 @@ cp config.example.yaml config.local.yaml
 ```
 打开 `config.local.yaml`，填入您的真实信息（该文件已被 `.gitignore` 强力屏蔽，绝不会提交至 Git）：
 ```yaml
+workspace_dir: "workspace"
+
 student:
   id: "2024000001"
   name: "张三"
@@ -136,12 +146,12 @@ courses:
 ## 🚀 快速上手使用教程
 
 ### 第 0 步：准备输入材料
-在准备做某门课的实验前，创建课程目录与 `resource/` 文件夹，放入官方材料：
+在准备做某门课的实验前，在 `workspace/` 下创建课程目录与 `resource/` 文件夹，放入官方材料：
 ```bash
-mkdir -p cryptography/resource
+mkdir -p workspace/cryptography/resource
 # 将学校老师给的指导书和报告模板放入 resource/ 目录：
-# 例如：cryptography/resource/《密码学基础与应用》实验指导书.pdf
-# 例如：cryptography/resource/（密码学基础与应用）学号-姓名-实验1报告模板.docx
+# 例如：workspace/cryptography/resource/《密码学基础与应用》实验指导书.pdf
+# 例如：workspace/cryptography/resource/（密码学基础与应用）学号-姓名-实验1报告模板.docx
 ```
 
 ---
@@ -167,10 +177,10 @@ python3 -m auto_exp.cli run cryptography 1
 ### 第 2 步：Phase 2 人机协作实操截图与终稿组装
 查看终端输出的 **【Phase 2 组装员交接单】**（亦可查看 `assembly_manifest.json`）：
 1. 按照交接单中的命令，在宿主机/真实硬件开发板上执行测试（如 `python3 src/exp_1_runner.py`），截取真实的终端/硬件运行图；
-2. 打开实验目录下的待填模板文档：`cryptography/exps/1/（密码学基础与应用）学号-姓名-实验1报告.docx`；
+2. 打开实验目录下的待填模板文档：`workspace/cryptography/exps/1/（密码学基础与应用）学号-姓名-实验1报告.docx`；
 3. 将初稿 `report.docx` 中的内容与您的真实截图填入，排版完毕后另存为规范名称：
    ```text
-   cryptography/exps/1/2024000001张三实验1报告.docx
+   workspace/cryptography/exps/1/2024000001张三实验1报告.docx
    ```
 
 *(注：该交接单采用统一的 JSON 契约，未来将无缝接入 Computer Use Agent 自动执行终端截图与 Word 贴图排版！)*
@@ -224,3 +234,4 @@ python3 -m auto_exp.cli resume cryptography 1
 - 仓库代码、示例配置、自动化测试中 100% 采用白名单假数据（如“张三”、“2024000001”）；
 - 真实个人信息仅允许保存在本地被 `.gitignore` 物理隔离的 `config.local.yaml` 中；
 - 每次 `git commit` 或 `git push` 前，自动化扫描器将全面扫描暂存区与提交内容，一旦检测到任何疑似真实学号或敏感 Token，将**硬性阻断提交并警报**。
+- 若有任何使用疑问或 Bug，欢迎通过 **[GitHub Issues](https://github.com/DeepJH/auto-exp-report/issues)** 反馈。
