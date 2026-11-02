@@ -1,13 +1,9 @@
 # auto-exp-report
 
-<div align="center">
-
 [![GitHub Repo](https://img.shields.io/badge/GitHub-DeepJH%2Fauto--exp--report-181717?logo=github)](https://github.com/DeepJH/auto-exp-report)
 [![Release](https://img.shields.io/badge/Release-v0.1.0-orange)](https://github.com/DeepJH/auto-exp-report/releases)
 [![Issues](https://img.shields.io/github/issues/DeepJH/auto-exp-report?color=green)](https://github.com/DeepJH/auto-exp-report/issues)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/DeepJH/auto-exp-report/blob/main/LICENSE)
-
-</div>
 
 > 🎓 **高校工科与计算机实验报告多 Agent 自动化工程流水线**  
 > 依托 Google Antigravity (`agy`) 原生子代理编排，严格遵循三阶段隔离门禁、模板大纲驱动、去 AI 学术腔调与公网假数据物理隔离。  
