@@ -119,8 +119,17 @@ def package_clean_release(course_slug: str, exp_id: int | str, repo_root: Path |
     with open(notes_path, "w", encoding="utf-8") as f:
         f.write(notes_content)
 
+    def _safe_display_rel(p: Path) -> str:
+        try:
+            return str(p.relative_to(repo_root))
+        except ValueError:
+            try:
+                return str(p.relative_to(workspace_root))
+            except ValueError:
+                return str(p)
+
     print(f"📦 纯净打包完成！\n"
-          f"   交付目录: {release_dir.relative_to(repo_root)}\n"
+          f"   交付目录: {_safe_display_rel(release_dir)}\n"
           f"   源码报告一体包: {zip_name} (包含文件 {len(namelist)} 个，缓存残留 0)\n"
           f"   独立报告备份: {final_docx_name}\n"
           f"   Release 说明文件: notes.md")

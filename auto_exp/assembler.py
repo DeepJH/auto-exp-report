@@ -16,6 +16,102 @@ def get_expected_final_filename(student_info: dict, exp_id: int | str) -> str:
     return f"{sid}{sname}实验{exp_id}报告.docx"
 
 
+def safe_rel_path(target: Path, repo_root: Path, workspace_root: Path) -> str:
+    try:
+        return str(target.relative_to(repo_root))
+    except ValueError:
+        try:
+            return str(target.relative_to(workspace_root))
+        except ValueError:
+            return str(target)
+
+
+def extract_screenshot_tasks(exp_dir: Path, course_slug: str, exp_id_str: str) -> list[dict]:
+    """从已生成的实验报告草稿（优先 report.md，次选 report.raw.md）中动态提取所有截图占位符任务"""
+    target_md = None
+    for cand in [exp_dir / "report.md", exp_dir / "report.raw.md"]:
+        if cand.is_file():
+            target_md = cand
+            break
+
+    default_task = [
+        {
+            "task_id": "screen_1",
+            "caption": f"图 1-1：exp_{exp_id_str}_runner 终端重定向测试实操运行图",
+            "command": f"python3 exp_{exp_id_str}_runner.py < exp_{exp_id_str}_runner_input.txt",
+            "work_dir": f"{course_slug}/exps/{exp_id_str}/src",
+            "placeholder_in_draft": "*(截图留空，待学生实操贴图)*",
+        }
+    ]
+
+    if not target_md:
+        return default_task
+
+    try:
+        content = target_md.read_text(encoding="utf-8")
+    except Exception:
+        return default_task
+
+    lines = content.splitlines()
+    tasks = []
+    task_idx = 1
+
+    for i, line in enumerate(lines):
+        if "截图留空" in line or "待学生实操贴图" in line:
+            # 向上回溯查找图注
+            caption = f"图 {exp_id_str}-{task_idx}：实操运行截图"
+            for j in range(i - 1, max(-1, i - 15), -1):
+                prev_line = lines[j].strip()
+                if (
+                    prev_line.startswith("**图")
+                    or prev_line.startswith("图 ")
+                    or prev_line.startswith("图:")
+                    or prev_line.startswith("图：")
+                ):
+                    caption = prev_line.replace("**", "").replace("*", "").strip()
+                    break
+
+            # 向上回溯查找代码块中的执行命令
+            command = f"python3 exp_{exp_id_str}_runner.py < exp_{exp_id_str}_runner_input.txt"
+            in_code = False
+            code_lines = []
+            for j in range(i - 1, max(-1, i - 25), -1):
+                cur = lines[j].strip()
+                if cur == "```":
+                    if not in_code:
+                        in_code = True
+                        continue
+                    else:
+                        break
+                elif (
+                    cur.startswith("```bash")
+                    or cur.startswith("```shell")
+                    or cur.startswith("```sh")
+                    or cur.startswith("```python")
+                    or cur.startswith("```")
+                ):
+                    if in_code:
+                        break
+                elif in_code:
+                    code_lines.insert(0, cur)
+
+            if code_lines:
+                cmd_candidates = [c for c in code_lines if c and not c.startswith("#")]
+                if cmd_candidates:
+                    command = " && ".join(cmd_candidates)
+
+            tasks.append({
+                "task_id": f"screen_{task_idx}",
+                "caption": caption,
+                "command": command,
+                "work_dir": f"{course_slug}/exps/{exp_id_str}/src",
+                "placeholder_in_draft": line.strip(),
+            })
+            task_idx += 1
+
+    return tasks if tasks else default_task
+
+
 def prepare_assembly_handshake(course_slug: str, exp_id: int | str, repo_root: Path | None = None) -> dict:
     if repo_root is None:
         repo_root = Path.cwd()
@@ -39,23 +135,18 @@ def prepare_assembly_handshake(course_slug: str, exp_id: int | str, repo_root: P
     expected_final_name = get_expected_final_filename(student, exp_id_str)
     blank_template_name = f"（{course_name}）学号-姓名-实验{exp_id_str}报告.docx"
 
+    # 动态扫描提取所有截图任务
+    screenshot_tasks = extract_screenshot_tasks(exp_dir, course_slug, exp_id_str)
+
     # 生成标准清单 JSON (作为向用户展示的操作表，以及未来 Computer Use 的标准化任务输入)
     manifest = {
         "course_slug": course_slug,
         "course_name": course_name,
         "exp_id": exp_id_str,
-        "blank_template_path": str((exp_dir / blank_template_name).relative_to(repo_root)),
-        "draft_docx_path": str((exp_dir / "report.docx").relative_to(repo_root)),
-        "expected_final_docx_path": str((exp_dir / expected_final_name).relative_to(repo_root)),
-        "screenshot_tasks": [
-            {
-                "task_id": "screen_1",
-                "caption": f"图 1-1：exp_{exp_id_str}_runner 终端重定向测试实操运行图",
-                "command": f"python3 exp_{exp_id_str}_runner.py < exp_{exp_id_str}_runner_input.txt",
-                "work_dir": f"{course_slug}/exps/{exp_id_str}/src",
-                "placeholder_in_draft": "*(截图留空，待学生实操贴图)*",
-            }
-        ],
+        "blank_template_path": safe_rel_path(exp_dir / blank_template_name, repo_root, workspace_root),
+        "draft_docx_path": safe_rel_path(exp_dir / "report.docx", repo_root, workspace_root),
+        "expected_final_docx_path": safe_rel_path(exp_dir / expected_final_name, repo_root, workspace_root),
+        "screenshot_tasks": screenshot_tasks,
     }
 
     manifest_path = exp_dir / "assembly_manifest.json"
@@ -65,8 +156,8 @@ def prepare_assembly_handshake(course_slug: str, exp_id: int | str, repo_root: P
     # 更新状态为等待组装
     state["current_phase"] = 2
     state["status"] = "AWAITING_ASSEMBLY"
-    state["artifacts"]["assembly_manifest_json"] = str(manifest_path.relative_to(repo_root))
-    state["artifacts"]["expected_final_docx"] = str((exp_dir / expected_final_name).relative_to(repo_root))
+    state["artifacts"]["assembly_manifest_json"] = safe_rel_path(manifest_path, repo_root, workspace_root)
+    state["artifacts"]["expected_final_docx"] = safe_rel_path(exp_dir / expected_final_name, repo_root, workspace_root)
 
     with open(state_file, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=2)
@@ -80,7 +171,8 @@ def prepare_assembly_handshake(course_slug: str, exp_id: int | str, repo_root: P
     print(f"\n2. 初稿 Word 参考路径：\n   👉 {exp_dir / 'report.docx'}")
     print("\n3. 实操测试与截图任务清单：")
     for t in manifest["screenshot_tasks"]:
-        print(f"   - 运行目录: {t['work_dir']}")
+        print(f"   - 任务编号: {t['task_id']}")
+        print(f"     运行目录: {t['work_dir']}")
         print(f"     执行命令: {t['command']}")
         print(f"     截图图注: {t['caption']}")
     print(f"\n4. 终稿保存命名规范（必须严格一致！）：\n   💾 {exp_dir / expected_final_name}")
@@ -117,7 +209,7 @@ def verify_assembly_completion(course_slug: str, exp_id: int | str, repo_root: P
 
     state["status"] = "ASSEMBLED"
     state["current_phase"] = 2
-    state["artifacts"]["final_report_docx"] = str(final_path.relative_to(repo_root))
+    state["artifacts"]["final_report_docx"] = safe_rel_path(final_path, repo_root, workspace_root)
     with open(state_file, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=2)
 

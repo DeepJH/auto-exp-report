@@ -6,8 +6,10 @@ Phase 3: 交付归档员 (Releaser)
 
 import json
 import subprocess
+import sys
 from pathlib import Path
 
+from auto_exp.config import load_config, get_workspace_root
 from scripts.package_release import package_clean_release
 
 
@@ -50,8 +52,11 @@ def execute_release(course_slug: str, exp_id: int | str, publish: bool = False, 
     if repo_root is None:
         repo_root = Path.cwd()
 
+    cfg = load_config(repo_root)
+    workspace_root = get_workspace_root(cfg, repo_root)
+
     exp_id_str = str(exp_id)
-    exp_dir = repo_root / course_slug / "exps" / exp_id_str
+    exp_dir = workspace_root / course_slug / "exps" / exp_id_str
     state_file = exp_dir / "workflow_state.json"
 
     if not state_file.is_file():
@@ -63,7 +68,7 @@ def execute_release(course_slug: str, exp_id: int | str, publish: bool = False, 
     privacy_script = repo_root / "scripts" / "check_privacy.py"
     if privacy_script.is_file():
         print("🔒 [Releaser] 执行发布前隐私安全扫描...")
-        proc = subprocess.run([privacy_script], cwd=str(repo_root))
+        proc = subprocess.run([sys.executable, str(privacy_script)], cwd=str(repo_root))
         if proc.returncode != 0:
             raise RuntimeError("隐私安全扫描未通过，已阻断发布！")
 
@@ -93,10 +98,20 @@ def execute_release(course_slug: str, exp_id: int | str, publish: bool = False, 
     with open(state_file, "r", encoding="utf-8") as f:
         state = json.load(f)
 
+    def _safe_rel(p: str | Path) -> str:
+        target = Path(p)
+        try:
+            return str(target.relative_to(repo_root))
+        except ValueError:
+            try:
+                return str(target.relative_to(workspace_root))
+            except ValueError:
+                return str(target)
+
     state["current_phase"] = 3
     state["status"] = "RELEASED"
-    state["artifacts"]["release_dir"] = str(Path(package_info["release_dir"]).relative_to(repo_root))
-    state["artifacts"]["release_zip"] = str(Path(package_info["zip_path"]).relative_to(repo_root))
+    state["artifacts"]["release_dir"] = _safe_rel(package_info["release_dir"])
+    state["artifacts"]["release_zip"] = _safe_rel(package_info["zip_path"])
     state["artifacts"]["tag_name"] = package_info["tag_name"]
 
     with open(state_file, "w", encoding="utf-8") as f:
