@@ -76,6 +76,7 @@ An autonomous multi-agent engineering workflow powered natively by Google Antigr
 24. As an open-source contributor, I want `.gitignore` to automatically ignore local configuration files, so that my real student identity remains physically isolated on my machine.
 25. As a repository maintainer, I want a pre-commit verification check, so that any accidental inclusion of real student credentials halts the git commit or push immediately.
 26. As an orchestrator, I want a state-tracking JSON artifact in the experiment directory, so that the workflow can safely pause, inspect progress, and resume across session boundaries.
+27. As an engineering student with separate course repositories, I want to configure `workspace_dir` in `config.local.yaml`, so that the generator engine can manage external lab report directories without copying the entire toolset into each repository.
 
 ## Implementation Decisions
 
@@ -111,8 +112,13 @@ An autonomous multi-agent engineering workflow powered natively by Google Antigr
    ```
 6. **Configuration and Privacy Architecture**:
    Configuration is standardized on YAML. Publicly tracked examples (`config.example.yaml`) contain mock dummy data. Local runtime overrides (`config.local.yaml` or `~/.config/auto-exp/config.yaml`) are physically isolated and blocked by `.gitignore`.
-7. **Deterministic Helper Tooling**:
-   Critical validation and inspection logic (Word table extraction, Pandoc AST table checking, clean zip compression, docx image presence verification) is implemented as standalone, deterministic Python utilities rather than ad-hoc inline bash snippets.
+7. **Deterministic Helper Tooling & Format State Machines**:
+   - Critical validation and inspection logic (Word table extraction, Pandoc AST table checking, clean zip compression, docx image presence verification) is implemented as standalone, deterministic Python utilities rather than ad-hoc inline bash snippets.
+   - Table margin normalization uses a dedicated state machine that guarantees empty lines before and after Markdown table boundaries while maintaining strict contiguous alignment between internal rows, preventing Pandoc pipe degradation.
+8. **Decoupled Workspace Root (`workspace_dir`)**:
+   Configuration natively supports a `workspace_dir` field in `config.yaml` (defaulting to the repository root `.`). This decouples the execution engine from the target lab report directory tree, enabling students to keep report generation tools separate from their personal course git worktrees.
+9. **Multi-Factor Final Report Verification**:
+   The Assembler validates final docx submissions through a multi-factor assertion gate: ensuring file existence, exceeding the 100KB size floor, verifying zip archive integrity, and requiring non-empty `word/media/` directory containing actual embedded screenshot images.
 
 ## Testing Decisions
 

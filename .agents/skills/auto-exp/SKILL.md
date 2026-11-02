@@ -16,11 +16,17 @@ A disciplined, reproducible multi-agent engineering workflow system for universi
    - 报告正文中严禁出现 `（含代码占位符）`、`此处为代码占位` 等机械指令字样，必须使用正规技术报告标题与完整代码展示。
 3. **如实交代器材替代（Factual Substitutions）**：
    - 遇器材限制客观说明原因（如采用板载 LED 等效验证），严禁主观臆断学生的态度（如嫌接线麻烦）。
-4. **工作三阶段严格隔离**：
+4. **工作区解耦与定位（Workspace Definition）**：
+   - 单一实验工作区定义为 `<workspace_root>/<course>/exps/<exp_id>/`；
+   - 允许通过 `config.yaml` 中的 `workspace_dir` 自定义根路径（默认为 `.`），支持生成引擎与报告归档仓库物理解耦。
+5. **表格 AST 状态机规范与终稿多维断言**：
+   - Markdown 表格前后必须由状态机保留至少一行空行，而表格内部行与行紧密相连，杜绝 Pandoc 管道符降级；
+   - 终稿 docx 必须通过体积 (>100KB) 与内部嵌入图片（`word/media/` 非空）双重断言方可放行。
+6. **工作三阶段严格隔离**：
    - **Phase 1（全自动）**：完成代码、测试、初稿并在通过 AST 表格断言后**立刻停机**；
    - **Phase 2（人机协作）**：输出操作清单交由学生在宿主机实操截图并填入官方模板另存为终稿；
    - **Phase 3（全自动）**：终稿验收合格后，执行纯净无缓存打包并发布 GitHub Release。
-5. **公网隐私零泄漏防御（Privacy Guard）**：
+7. **公网隐私零泄漏防御（Privacy Guard）**：
    - 追踪文件必须 100% 使用假数据（“张三”、“2024000001”）；真实配置只能存在于本地被忽略的 `*.local.*` 中。
 
 ---

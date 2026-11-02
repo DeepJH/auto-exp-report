@@ -11,8 +11,12 @@ The official course lab manual and official Word report template located in `<co
 _Avoid_: User prompts as spec, arbitrary requirements, hallucinated sections
 
 **Exp Context**:
-The isolated filesystem directory `<course>/exps/<N>/` where all inputs, intermediate artifacts, and outputs for a specific experiment reside.
+The isolated filesystem directory `<workspace_root>/<course>/exps/<N>/` where all inputs, intermediate artifacts, and outputs for a specific experiment reside.
 _Avoid_: Global workspace, shared cache
+
+**Workspace Dir / Workspace Root**:
+The base directory path configured in `config.yaml` (`workspace_dir`) under which all course resources and experiment contexts reside. Defaults to the repository root (`.`), but can be decoupled to point to external lab report archives.
+_Avoid_: Hardcoded paths, single-repo lock-in
 
 **Three-Phase Collaboration Model**:
 The strict lifecycle dividing autonomous code/draft generation (Phase 1), screenshot & assembly handoff (Phase 2), and clean package release (Phase 3).

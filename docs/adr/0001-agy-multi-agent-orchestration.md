@@ -22,7 +22,10 @@ We orchestrate an automated workflow natively within Google Antigravity (`agy`),
    - `Assembler`: Dedicated Phase 2 interface (currently human-in-the-loop with strict docx validation; acts as the direct upgrade seam for future Computer-Use automation).
    - `Releaser`: Clean zip archiving (`-x __pycache__`), Git branch synchronization, and GitHub Release deployment with Chinese rename blocks.
 3. **Phase Boundaries**: Phase 1 terminates unconditionally at `report.docx`. Phase 2 is handed off to Assembler (human/computer-use). Phase 3 executes only after valid final docx assertion.
-4. **Configuration & Privacy**: System configuration uses YAML (`config.example.yaml` tracked with mock data like "张三" / "2024000001"; real student info isolated in `.gitignore`'d `config.local.yaml`).
+4. **Configuration & Privacy**: System configuration uses YAML (`config.example.yaml` tracked with mock data like "张三" / "2024000001"; real student info isolated in `.gitignore`'d `config.local.yaml`). Supports `workspace_dir` to optionally decouple report storage from the generator engine.
+5. **Deterministic Format & Verification State Machines**:
+   - Table AST Normalization: Markdown tables are formatted by a state machine enforcing blank lines around the outer table boundary while keeping inner table rows strictly contiguous to prevent Pandoc silent degradation.
+   - Multi-Factor Assembly Verification: Final docx validation asserts both file size (>100KB) and the physical presence of embedded images in `word/media/`.
 
 ## Consequences
 
