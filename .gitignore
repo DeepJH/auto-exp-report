@@ -1,0 +1,26 @@
+# Local & Private Configuration (NEVER COMMIT SENSITIVE DATA)
+config.yaml
+config.local.yaml
+*.local.*
+.env
+.env.local
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Build and intermediate outputs
+build/
+dist/
+*.egg-info/
+.pio/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
